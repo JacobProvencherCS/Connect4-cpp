@@ -4,110 +4,16 @@
 #include <ranges>
 #include <functional>
 
-std::vector<std::vector<int> > grid;
-std::vector<std::function<bool> > verifs = {
-    horizontal_check,
-    vertical_check,
-    pos_diag_check,
-    neg_diag_check
-};
 
-bool set_token(int col, int player)
+bool set_token(std::vector<std::vector<int> > &p_matrix, const int col, const int player)
 {
     bool valid = false;
-    if (grid[col].size() != 7)
+    if (p_matrix[col].size() != 7)
     {
-        grid[col].push_back(player);
+        p_matrix[col - 1].push_back(player);
         valid = true;
     }
     return valid;
-}
-
-int is_winner(const std::vector<std::vector<int> > &p_matrix)
-{
-    int outcome = 0;
-
-    for (int i = 1; i < 3 && outcome; i++)
-    {
-        for (auto &verif: verifs)
-        {
-            if (verif(i))
-            {
-                outcome = i;
-            }
-        }
-    }
-
-    if (!outcome && is_grid_full(p_matrix))
-    {
-        outcome = 3;
-    }
-    return outcome;
-}
-
-bool pos_diag_check(std::vector<std::vector<int> > p_matrix)
-{
-    bool winner_found = false;
-    for (int j = 0; j < 4 && !winner_found; j++)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            std::vector<int> diag_values = {
-                grid[j][i],
-                grid[j+1][i+1],
-                grid[j+2][i+2],
-                grid[j+3][i+3]
-            };
-            if (is_all_the_same(diag_values))
-            {
-                winner_found = true;
-            }
-        }
-    }
-    return winner_found;
-}
-
-bool neg_diag_check(std::vector<std::vector<int>> p_matrix)
-{
-    return pos_diag_check(mirror(p_matrix));
-}
-
-bool horizontal_check(std::vector<std::vector<int>> p_matrix)
-{
-    bool winner_found = false;
-    for (auto& line : transpose(p_matrix))
-    {
-        if (!winner_found)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (is_all_the_same(line[i:i+4])) // can't do that in C++... todo : fix here please...
-                {
-                    winner_found = true;
-                }
-            }
-        }
-    }
-    return winner_found;
-}
-
-bool vertical_check(std::vector<std::vector<int>> p_matrix)
-{
-    bool winner_found = false;
-    for (auto& col : p_matrix)
-    {
-        if (!winner_found)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (is_all_the_same(col[i:i+4])) // can't do that in C++... todo : fix here please...
-                {
-                    winner_found = true;
-                }
-            }
-        }
-    }
-    return winner_found;
 }
 
 std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > &p_matrix)
@@ -131,16 +37,16 @@ std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > &p_matri
     return result;
 }
 
+bool is_all_the_same(std::vector<int> p_line)
+{
+    return std::ranges::adjacent_find(p_line, std::not_equal_to{}) == p_line.end() && p_line.front() != 0;
+}
+
 std::vector<std::vector<int> > mirror(std::vector<std::vector<int> > &p_matrix)
 {
     std::vector<std::vector<int> > result = transpose(p_matrix);
     std::ranges::reverse(result);
     return result;
-}
-
-bool is_all_the_same(std::vector<int> p_line)
-{
-    return std::ranges::adjacent_find(p_line, std::not_equal_to{}) == p_line.end();
 }
 
 bool is_grid_full(const std::vector<std::vector<int> > &p_matrix)
@@ -155,6 +61,98 @@ bool is_grid_full(const std::vector<std::vector<int> > &p_matrix)
         }
     }
     return is_full;
+}
+
+
+bool pos_diag_check(std::vector<std::vector<int> > &p_matrix)
+{
+    bool winner_found = false;
+    for (int j = 0; j < 4 && !winner_found; j++)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            const std::vector diag_values = {
+                p_matrix[j][i],
+                p_matrix[j + 1][i + 1],
+                p_matrix[j + 2][i + 2],
+                p_matrix[j + 3][i + 3]
+            };
+            if (is_all_the_same(diag_values))
+            {
+                winner_found = true;
+            }
+        }
+    }
+    return winner_found;
+}
+
+bool neg_diag_check(std::vector<std::vector<int> > &p_matrix)
+{
+    return pos_diag_check(mirror(p_matrix));
+}
+
+bool horizontal_check(std::vector<std::vector<int> > &p_matrix)
+{
+    bool winner_found = false;
+    std::vector<std::vector<int> > new_matrix = transpose(p_matrix);
+
+    for (auto lineIt = new_matrix.begin(); lineIt != new_matrix.end() && !winner_found; ++lineIt)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (const std::vector sub_line(lineIt->begin() + i, lineIt->begin() + i + 4); is_all_the_same(sub_line))
+            {
+                winner_found = true;
+            }
+        }
+    }
+    return winner_found;
+}
+
+
+bool vertical_check(std::vector<std::vector<int> > &p_matrix)
+{
+    bool winner_found = false;
+    for (auto colIt = p_matrix.begin(); colIt != p_matrix.end() && !winner_found; ++colIt)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (const std::vector sub_col(colIt->begin() + i, colIt->begin() + i + 4); is_all_the_same(sub_col))
+            {
+                winner_found = true;
+            }
+        }
+    }
+    return winner_found;
+}
+
+int is_winner(const std::vector<std::vector<int> > &p_matrix)
+{
+    int outcome = 0;
+
+    std::vector<std::function<bool(std::vector<std::vector<int> > &)> > verifications = {
+        horizontal_check,
+        vertical_check,
+        pos_diag_check,
+        neg_diag_check
+    };
+
+    for (int i = 1; i < 3 && outcome; i++) // for each player (1 and 2)
+    {
+        for (auto &verif: verifications)
+        {
+            if (verif(i))
+            {
+                outcome = i;
+            }
+        }
+    }
+
+    if (!outcome && is_grid_full(p_matrix))
+    {
+        outcome = 3;
+    }
+    return outcome;
 }
 
 void printMatrix(const std::vector<std::vector<int> > &p_matrix)
@@ -173,14 +171,19 @@ void printMatrix(const std::vector<std::vector<int> > &p_matrix)
 int main()
 {
     std::vector<std::vector<int> > matrix = {
-        {1},
-        {2, 1},
-        {2, 2, 1},
-        {3, 3, 3, 1},
-        {},
-        {},
-        {4, 4, 4}
+        {1, 2, 1, 1},
+        {2, 1, 2, 2},
+        {1, 2},
+        {1, 1, 2},
+        {1, 1, 1, 2},
+        {1, 1},
+        {1, 1, 1, 2},
     };
+
+    std::cout << is_winner(matrix) << std::endl;
+
+    printMatrix(transpose(matrix));
+
 
     return 0;
 }
