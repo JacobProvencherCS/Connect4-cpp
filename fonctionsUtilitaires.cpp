@@ -17,7 +17,7 @@ bool set_token(std::vector<std::vector<int> > &p_matrix, const int &p_col, const
     return valid_move;
 }
 
-std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > &p_matrix)
+std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > p_matrix)
 {
     if (p_matrix.empty()) return {};
 
@@ -43,11 +43,10 @@ bool is_all_the_same(std::vector<int> p_line)
     return std::ranges::adjacent_find(p_line, std::not_equal_to{}) == p_line.end() && p_line.front() != 0;
 }
 
-std::vector<std::vector<int> > mirror(std::vector<std::vector<int> > &p_matrix)
+std::vector<std::vector<int> > mirror(std::vector<std::vector<int> > p_matrix)
 {
-    std::vector<std::vector<int> > result = transpose(p_matrix);
-    std::ranges::reverse(result);
-    return result;
+    std::ranges::reverse(p_matrix);
+    return p_matrix;
 }
 
 bool is_grid_full(const std::vector<std::vector<int> > &p_matrix)
@@ -87,12 +86,12 @@ int pos_diag_check(const std::vector<std::vector<int> > &p_matrix)
     return winner_found;
 }
 
-int neg_diag_check(std::vector<std::vector<int> > &p_matrix)
+int neg_diag_check(const std::vector<std::vector<int> > &p_matrix)
 {
     return pos_diag_check(mirror(p_matrix));
 }
 
-int horizontal_check(std::vector<std::vector<int> > &p_matrix)
+int horizontal_check(const std::vector<std::vector<int> > &p_matrix)
 {
     int winner_found = 0;
     std::vector<std::vector<int> > new_matrix = transpose(p_matrix);
@@ -111,7 +110,7 @@ int horizontal_check(std::vector<std::vector<int> > &p_matrix)
 }
 
 
-int vertical_check(std::vector<std::vector<int> > &p_matrix)
+int vertical_check(const std::vector<std::vector<int> > &p_matrix)
 {
     int winner_found = 0;
     for (auto colIt = p_matrix.begin(); colIt != p_matrix.end() && !winner_found; ++colIt)
@@ -129,7 +128,15 @@ int vertical_check(std::vector<std::vector<int> > &p_matrix)
 
 int is_winner(std::vector<std::vector<int> > &p_matrix)
 {
-    int winner_found = 0; // no winner found yet
+    constexpr int winner_found = 0; // no winner found yet
+
+    size_t total_tokens_played = 0;
+    for (auto &col : p_matrix)
+    {
+        total_tokens_played += col.size();
+    }
+
+    if (total_tokens_played < 4) return 0;
 
     const std::vector<std::function<int(std::vector<std::vector<int> > &)> > verifications = {
         horizontal_check,
@@ -138,15 +145,12 @@ int is_winner(std::vector<std::vector<int> > &p_matrix)
         neg_diag_check
     };
 
-    for (int i = 1; i < 3; i++) // for each player (1 and 2)
+    for (auto &verif: verifications)
     {
-        for (auto &verif: verifications)
-        {
-            if (const int outcome = verif(p_matrix); outcome != 0) return outcome;
-        }
+        if (const int winner = verif(p_matrix); winner != 0) return winner;
     }
 
-    if (is_grid_full(p_matrix)) winner_found = 3;
+    if (is_grid_full(p_matrix)) return 3; // it's a draw.
 
     return winner_found;
 }
