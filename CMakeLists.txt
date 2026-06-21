@@ -3,4 +3,6 @@ project(connect4)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(connect4 main.cpp)
+add_executable(connect4 main.cpp
+               fonctionsUtilitaires.cpp
+               fonctionsUtilitaires.h)
