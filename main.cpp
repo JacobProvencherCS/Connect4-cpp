@@ -10,14 +10,13 @@ int main()
         {1, 2, 1, 1},
         {2, 1, 2, 2},
         {1, 2},
-        {1, 1, 2},
-        {1, 1, 1, 2},
-        {1, 1},
+        {1, 1, 1},
+        {2, 1, 1, 2},
+        {1, 2},
         {1, 1, 1, 2},
     };
 
-    printMatrix(transpose(matrix));
-
+    std::cout << is_winner(matrix) << std::endl;
 
     return 0;
 }
