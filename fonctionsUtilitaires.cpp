@@ -6,7 +6,7 @@
 #include "fonctionsUtilitaires.h"
 
 
-bool set_token(std::vector<std::vector<int> > &p_matrix, const int &p_col, const int &p_player)
+bool set_token(Grid &p_matrix, const int &p_col, const int &p_player)
 {
     bool valid_move = false;
     if (p_matrix[p_col].size() != 7)
@@ -17,7 +17,7 @@ bool set_token(std::vector<std::vector<int> > &p_matrix, const int &p_col, const
     return valid_move;
 }
 
-std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > p_matrix)
+Grid transpose(Grid p_matrix)
 {
     if (p_matrix.empty()) return {};
 
@@ -38,18 +38,18 @@ std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > p_matrix
     return result;
 }
 
-bool is_all_the_same(std::vector<int> p_line)
+bool is_all_the_same(const Line &p_line)
 {
     return std::ranges::adjacent_find(p_line, std::not_equal_to{}) == p_line.end() && p_line.front() != 0;
 }
 
-std::vector<std::vector<int> > mirror(std::vector<std::vector<int> > p_matrix)
+Grid mirror(Grid p_matrix)
 {
     std::ranges::reverse(p_matrix);
     return p_matrix;
 }
 
-bool is_grid_full(const std::vector<std::vector<int> > &p_matrix)
+bool is_grid_full(const Grid &p_matrix)
 {
     bool is_full = true;
 
@@ -64,14 +64,14 @@ bool is_grid_full(const std::vector<std::vector<int> > &p_matrix)
 }
 
 
-int pos_diag_check(const std::vector<std::vector<int> > &p_matrix)
+int pos_diag_check(const Grid &p_matrix)
 {
     int winner_found = 0;
     for (int j = 0; j < 4 && !winner_found; j++)
     {
         for (int i = 0; i < 3; i++)
         {
-            const std::vector diag_values = {
+            const Line diag_values = {
                 p_matrix[j][i],
                 p_matrix[j + 1][i + 1],
                 p_matrix[j + 2][i + 2],
@@ -86,15 +86,16 @@ int pos_diag_check(const std::vector<std::vector<int> > &p_matrix)
     return winner_found;
 }
 
-int neg_diag_check(const std::vector<std::vector<int> > &p_matrix)
+int neg_diag_check(const Grid &p_matrix)
 {
-    return pos_diag_check(mirror(p_matrix));
+    const Grid mirrored_matrix = mirror(p_matrix);
+    return pos_diag_check(mirrored_matrix);
 }
 
-int horizontal_check(const std::vector<std::vector<int> > &p_matrix)
+int horizontal_check(const Grid &p_matrix)
 {
     int winner_found = 0;
-    std::vector<std::vector<int> > new_matrix = transpose(p_matrix);
+    Grid new_matrix = transpose(p_matrix);
 
     for (auto lineIt = new_matrix.begin(); lineIt != new_matrix.end() && !winner_found; ++lineIt)
     {
@@ -110,7 +111,7 @@ int horizontal_check(const std::vector<std::vector<int> > &p_matrix)
 }
 
 
-int vertical_check(const std::vector<std::vector<int> > &p_matrix)
+int vertical_check(const Grid &p_matrix)
 {
     int winner_found = 0;
     for (auto colIt = p_matrix.begin(); colIt != p_matrix.end() && !winner_found; ++colIt)
@@ -126,19 +127,19 @@ int vertical_check(const std::vector<std::vector<int> > &p_matrix)
     return winner_found;
 }
 
-int is_winner(std::vector<std::vector<int> > &p_matrix)
+int is_winner(const Grid &p_matrix)
 {
     constexpr int winner_found = 0; // no winner found yet
 
     size_t total_tokens_played = 0;
-    for (auto &col : p_matrix)
+    for (auto &col: p_matrix)
     {
         total_tokens_played += col.size();
     }
 
     if (total_tokens_played < 4) return 0;
 
-    const std::vector<std::function<int(std::vector<std::vector<int> > &)> > verifications = {
+    const std::vector<std::function<int(const Grid &)> > verifications = {
         horizontal_check,
         vertical_check,
         pos_diag_check,
@@ -155,7 +156,7 @@ int is_winner(std::vector<std::vector<int> > &p_matrix)
     return winner_found;
 }
 
-void printMatrix(const std::vector<std::vector<int> > &p_matrix)
+void printMatrix(const Grid &p_matrix)
 {
     for (auto &line: p_matrix | std::views::reverse)
     {

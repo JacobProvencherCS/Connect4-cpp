@@ -7,21 +7,24 @@
 
 #include <vector>
 
-bool set_token(std::vector<std::vector<int> > &p_matrix, const int &p_col, const int &p_player);
+typedef std::vector<int> Line;
+typedef std::vector<Line> Grid;
 
-std::vector<std::vector<int> > transpose(std::vector<std::vector<int> > p_matrix);
-std::vector<std::vector<int> > mirror(std::vector<std::vector<int> > p_matrix);
+bool set_token(Grid &p_matrix, const int &p_col, const int &p_player);
 
-bool is_all_the_same(std::vector<int> p_line);
-bool is_grid_full(const std::vector<std::vector<int> > &p_matrix);
+Grid transpose(Grid p_matrix);
+Grid mirror(Grid p_matrix);
 
-int pos_diag_check(const std::vector<std::vector<int> > &p_matrix);
-int neg_diag_check(const std::vector<std::vector<int> > &p_matrix);
-int horizontal_check(const std::vector<std::vector<int> > &p_matrix);
-int vertical_check(const std::vector<std::vector<int> > &p_matrix);
-int is_winner(std::vector<std::vector<int> > &p_matrix);
+bool is_all_the_same(const Line &p_line);
+bool is_grid_full(const Grid &p_matrix);
 
-void printMatrix(const std::vector<std::vector<int> > &p_matrix);
+int pos_diag_check(const Grid &p_matrix);
+int neg_diag_check(const Grid &p_matrix);
+int horizontal_check(const Grid &p_matrix);
+int vertical_check(const Grid &p_matrix);
+int is_winner(const Grid &p_matrix);
+
+void printMatrix(const Grid &p_matrix);
 
 
 #endif //CONNECT4_FONCTIONSUTILITAIRES_H
